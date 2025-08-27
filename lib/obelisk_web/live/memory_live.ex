@@ -12,6 +12,7 @@ defmodule ObeliskWeb.MemoryLive do
 
   use ObeliskWeb, :live_view
 
+  alias Ecto.Adapters.SQL
   alias Obelisk.{Memory, Retrieval}
   import Ecto.Query
 
@@ -252,7 +253,7 @@ defmodule ObeliskWeb.MemoryLive do
     LIMIT $2
     """
 
-    case Ecto.Adapters.SQL.query(Obelisk.Repo, sql, [query, limit]) do
+    case SQL.query(Obelisk.Repo, sql, [query, limit]) do
       {:ok, %{rows: rows}} ->
         Enum.map(rows, fn [id, text, kind, metadata, inserted_at, rank] ->
           %{
