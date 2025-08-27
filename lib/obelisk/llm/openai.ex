@@ -54,11 +54,13 @@ defmodule Obelisk.LLM.OpenAI do
     [{"authorization", "Bearer #{api_key}"}]
   rescue
     _error in ArgumentError ->
-      reraise RuntimeError, """
-      OPENAI_API_KEY environment variable is required but not set.
-      Please set your OpenAI API key:
+      reraise RuntimeError,
+              """
+              OPENAI_API_KEY environment variable is required but not set.
+              Please set your OpenAI API key:
 
-        export OPENAI_API_KEY=sk-...
-      """, __STACKTRACE__
+                export OPENAI_API_KEY=sk-...
+              """,
+              __STACKTRACE__
   end
 end
