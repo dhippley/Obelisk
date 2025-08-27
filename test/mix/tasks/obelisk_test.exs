@@ -11,7 +11,7 @@ defmodule Mix.Tasks.ObeliskTest do
           Obelisk.run(["--help"])
         end)
 
-      assert String.contains?(output, "Interactive chat or one-shot mode")
+      assert String.contains?(output, "Interactive chat, one-shot mode, or server modes")
       assert String.contains?(output, "## Usage")
       assert String.contains?(output, "mix obelisk")
     end

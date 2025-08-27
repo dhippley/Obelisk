@@ -307,15 +307,15 @@ defmodule ObeliskWeb.MemoryLiveTest do
         refute html =~ "class=\"fixed inset-0 z-50 overflow-y-auto\""
 
         # Open the modal by clicking view button
-        view 
-        |> element("button[phx-click=view_memory][phx-value-id='1']") 
+        view
+        |> element("button[phx-click=view_memory][phx-value-id='1']")
         |> render_click()
 
         # Modal should now be visible (check for modal container)
         assert render(view) =~ "class=\"fixed inset-0 z-50 overflow-y-auto\""
 
         # Close the modal by clicking the close button (use the text-based one)
-        view 
+        view
         |> element("button[phx-click=close_details]", "Close")
         |> render_click()
 
