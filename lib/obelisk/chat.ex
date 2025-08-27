@@ -18,6 +18,7 @@ defmodule Obelisk.Chat do
   Send a chat message and get an AI response with RAG.
 
   ## Options
+  - `:provider` - LLM provider to use (default: "openai")
   - `:model` - LLM model to use (default: "gpt-3.5-turbo")
   - `:retrieval_k` - Number of relevant memories to retrieve (default: 5)
   - `:retrieval_threshold` - Similarity threshold for memory retrieval (default: 0.7)
@@ -31,7 +32,8 @@ defmodule Obelisk.Chat do
 
       # With custom options
       {:ok, response} = Chat.send_message("Tell me about Phoenix", "my-session", %{
-        model: "gpt-4",
+        provider: "anthropic",
+        model: "claude-3-5-sonnet-20241022",
         retrieval_k: 10,
         max_history: 5
       })
@@ -185,16 +187,33 @@ defmodule Obelisk.Chat do
 
   defp get_llm_response(prompt, opts) do
     model = Map.get(opts, :model, @default_model)
+    provider = Map.get(opts, :provider)
 
     messages = [
       %{role: "user", content: prompt}
     ]
 
-    case LLM.Router.chat(messages, %{model: model}) do
-      {:ok, response} -> {:ok, response}
-      {:error, reason} -> {:error, {:llm_failed, reason}}
+    llm_opts = %{model: model}
+    llm_opts = if provider, do: Map.put(llm_opts, :provider, provider), else: llm_opts
+
+    case LLM.Router.chat(messages, llm_opts) do
+      {:ok, response} ->
+        # Extract content from response based on provider format
+        content = extract_response_content(response)
+        {:ok, content}
+
+      {:error, reason} ->
+        {:error, {:llm_failed, reason}}
     end
   end
+
+  # Extract response content handling different provider formats
+  defp extract_response_content(%{"choices" => [%{"message" => %{"content" => content}} | _]}),
+    do: content
+
+  defp extract_response_content(%{"content" => content}), do: content
+  defp extract_response_content(response) when is_binary(response), do: response
+  defp extract_response_content(response), do: inspect(response)
 
   defp get_session_by_name(session_name) do
     from(s in Session, where: s.name == ^session_name)

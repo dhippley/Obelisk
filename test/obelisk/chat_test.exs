@@ -175,6 +175,30 @@ defmodule Obelisk.ChatTest do
         assert {:error, {:retrieval_failed, :embedding_failed}} = result
       end
     end
+
+    test "passes provider options to LLM Router", %{session: session} do
+      with_mocks([
+        {Obelisk.LLM.Router, [],
+         [
+           chat: fn _messages, opts ->
+             # Verify provider option is passed through
+             assert opts[:provider] == "anthropic"
+             assert opts[:model] == "claude-3-5-sonnet-20241022"
+             {:ok, "Anthropic Response"}
+           end
+         ]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
+      ]) do
+        {:ok, result} =
+          Chat.send_message("Test message", session.name, %{
+            provider: "anthropic",
+            model: "claude-3-5-sonnet-20241022"
+          })
+
+        assert result.response == "Anthropic Response"
+        assert result.session == session.name
+      end
+    end
   end
 
   describe "get_conversation_history/2" do

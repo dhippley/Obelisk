@@ -32,11 +32,63 @@ defmodule Obelisk.LLM.OpenAI do
 
   @doc """
   Send a streaming chat completion request to OpenAI.
-
-  Currently returns an error as streaming is not yet implemented.
   """
-  def stream_chat(_messages, _opts, _callback) do
-    {:error, :not_implemented}
+  def stream_chat(messages, opts \\ %{}, callback) do
+    body =
+      messages
+      |> build_request_body(opts)
+      |> Map.put(:stream, true)
+
+    try do
+      Req.post!(
+        url: "#{@base_url}/chat/completions",
+        headers: auth_headers(),
+        json: body,
+        into: fn
+          {:status, status} when status != 200 ->
+            {:error, {:http_error, status}}
+
+          {:headers, _headers} ->
+            :cont
+
+          {:data, chunk} ->
+            process_stream_chunk(chunk, callback)
+            :cont
+        end
+      )
+
+      :ok
+    rescue
+      error -> {:error, {:stream_failed, error}}
+    end
+  end
+
+  # Process streaming chunks from OpenAI
+  defp process_stream_chunk(chunk, callback) do
+    chunk
+    |> String.split("\n")
+    |> Enum.each(fn line ->
+      case String.trim(line) do
+        "data: [DONE]" ->
+          callback.(%{type: :done})
+
+        "data: " <> data ->
+          case Jason.decode(data) do
+            {:ok, %{"choices" => [%{"delta" => delta} | _]}} ->
+              if content = delta["content"] do
+                callback.(%{type: :content, content: content})
+              end
+
+            _ ->
+              :ignore
+          end
+
+        _ ->
+          :ignore
+      end
+    end)
+  rescue
+    _error -> :ignore
   end
 
   # Private functions

@@ -19,11 +19,18 @@ defmodule ObeliskWeb.Api.V1.ChatController do
     "session_id": "optional-session-name",
     "stream": false,
     "options": {
+      "provider": "openai",
+      "model": "gpt-4o-mini",
       "retrieval_k": 5,
       "max_history": 10
     }
   }
   ```
+
+  ## Available Providers
+  - `openai`: GPT-4, GPT-3.5-turbo, GPT-4o-mini
+  - `anthropic`: Claude-3.5-Sonnet (requires ANTHROPIC_API_KEY)
+  - `ollama`: Local models (requires Ollama server)
   """
   def create(conn, params) do
     message = Map.get(params, "message")
@@ -68,16 +75,21 @@ defmodule ObeliskWeb.Api.V1.ChatController do
   # Private functions
 
   defp handle_regular_chat(conn, message, session_id, options) do
+    start_time = System.monotonic_time(:millisecond)
+
     case Chat.send_message(message, session_id, options) do
       {:ok, result} ->
+        end_time = System.monotonic_time(:millisecond)
+        processing_time = end_time - start_time
+
         json(conn, %{
           response: result.response,
           session_id: result.session,
+          provider: Map.get(options, "provider") || Map.get(options, :provider) || "openai",
           context_used: result.context_used,
           history_included: result.history_included,
           metadata: %{
-            # Would need to be tracked if desired
-            processing_time_ms: 0
+            processing_time_ms: processing_time
           }
         })
 

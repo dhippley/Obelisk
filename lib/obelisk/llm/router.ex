@@ -6,10 +6,10 @@ defmodule Obelisk.LLM.Router do
   """
 
   @providers %{
-    "openai" => Obelisk.LLM.OpenAI
+    "openai" => Obelisk.LLM.OpenAI,
+    "anthropic" => Obelisk.LLM.Anthropic,
+    "ollama" => Obelisk.LLM.Ollama
     # Future providers:
-    # "anthropic" => Obelisk.LLM.Anthropic,
-    # "ollama" => Obelisk.LLM.Ollama,
     # "gemini" => Obelisk.LLM.Gemini
   }
 

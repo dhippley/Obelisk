@@ -45,7 +45,7 @@ defmodule ObeliskWeb.ChatLive do
       })
       |> assign(:sidebar_open, true)
       |> assign(:current_provider, "openai")
-      |> assign(:available_providers, ["openai", "anthropic", "ollama"])
+      |> assign(:available_providers, LLM.Router.available_providers())
 
     {:ok, socket}
   end
@@ -85,7 +85,10 @@ defmodule ObeliskWeb.ChatLive do
     Task.start(fn ->
       start_time = System.monotonic_time(:millisecond)
 
-      case Chat.send_message(message, session_name) do
+      # Use current provider for the chat request
+      chat_opts = %{provider: socket.assigns.current_provider}
+
+      case Chat.send_message(message, session_name, chat_opts) do
         {:ok, result} ->
           end_time = System.monotonic_time(:millisecond)
           response_time = end_time - start_time
@@ -149,11 +152,10 @@ defmodule ObeliskWeb.ChatLive do
   end
 
   def handle_event("switch_provider", %{"provider" => provider}, socket) do
-    # Note: This would need implementation in the LLM router to actually switch providers
     socket =
       socket
       |> assign(:current_provider, provider)
-      |> put_flash(:info, "Switched to #{provider} (feature coming soon)")
+      |> put_flash(:info, "Switched to #{String.capitalize(provider)} provider")
 
     {:noreply, socket}
   end

@@ -111,7 +111,7 @@ defmodule ObeliskWeb.ChatLiveTest do
         |> render_change(%{"provider" => "anthropic"})
 
         # Should show message about provider switch
-        assert render(view) =~ "Switched to anthropic"
+        assert render(view) =~ "Switched to Anthropic"
       end
     end
   end
