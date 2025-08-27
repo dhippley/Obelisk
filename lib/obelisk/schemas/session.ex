@@ -1,4 +1,7 @@
 defmodule Obelisk.Schemas.Session do
+  @moduledoc """
+  Schema for chat sessions.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

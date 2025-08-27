@@ -1,4 +1,7 @@
 defmodule Obelisk.Schemas.Memory do
+  @moduledoc """
+  Schema for storing memories with vector embeddings for semantic search.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

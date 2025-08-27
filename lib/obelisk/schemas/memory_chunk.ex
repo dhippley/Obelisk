@@ -1,4 +1,7 @@
 defmodule Obelisk.Schemas.MemoryChunk do
+  @moduledoc """
+  Schema for chunked memory pieces with vector embeddings.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

@@ -1,4 +1,7 @@
 defmodule Obelisk.Schemas.Message do
+  @moduledoc """
+  Schema for chat messages with role-based content and tool support.
+  """
   use Ecto.Schema
   import Ecto.Changeset
 

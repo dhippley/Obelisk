@@ -8,6 +8,7 @@ defmodule Obelisk.MixProject do
       elixir: "~> 1.15",
       elixirc_paths: elixirc_paths(Mix.env()),
       start_permanent: Mix.env() == :prod,
+      warnings_as_errors: true,
       aliases: aliases(),
       deps: deps(),
       compilers: [:phoenix_live_view] ++ Mix.compilers(),
@@ -91,7 +92,11 @@ defmodule Obelisk.MixProject do
       {:dns_cluster, "~> 0.2.0"},
 
       # Testing
-      {:lazy_html, ">= 0.1.0", only: :test}
+      {:lazy_html, ">= 0.1.0", only: :test},
+
+      # Code Quality
+      {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
+      {:styler, "~> 1.0", only: [:dev, :test], runtime: false}
     ]
   end
 
@@ -114,7 +119,7 @@ defmodule Obelisk.MixProject do
         "esbuild obelisk --minify",
         "phx.digest"
       ],
-      precommit: ["compile --warning-as-errors", "deps.unlock --unused", "format", "test"]
+      precommit: ["compile", "deps.unlock --unused", "format", "credo --strict", "test"]
     ]
   end
 end
