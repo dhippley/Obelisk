@@ -1,6 +1,6 @@
 defmodule ObeliskWeb.UserSocketTest do
   use ObeliskWeb.ChannelCase
-  
+
   alias ObeliskWeb.UserSocket
 
   describe "connect/3" do
@@ -30,7 +30,7 @@ defmodule ObeliskWeb.UserSocketTest do
   describe "channel routing" do
     test "routes chat channels correctly" do
       {:ok, socket} = connect(UserSocket, %{})
-      
+
       # This tests that the channel routing is properly configured
       # The actual channel join is tested in chat_channel_test.exs
       assert socket

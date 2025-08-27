@@ -38,7 +38,10 @@ defmodule ObeliskWeb.ChatChannel do
             {:ok, socket}
 
           {:error, reason} ->
-            Logger.error("Failed to load chat history for session #{session_name}: #{inspect(reason)}")
+            Logger.error(
+              "Failed to load chat history for session #{session_name}: #{inspect(reason)}"
+            )
+
             {:error, %{reason: "Failed to load chat history"}}
         end
 
@@ -66,7 +69,9 @@ defmodule ObeliskWeb.ChatChannel do
     session_name = socket.assigns.session_name
     options = Map.get(params, "options", %{})
 
-    Logger.debug("Processing message in session #{session_name}: #{String.slice(message, 0, 50)}...")
+    Logger.debug(
+      "Processing message in session #{session_name}: #{String.slice(message, 0, 50)}..."
+    )
 
     # Send typing indicator to all users in the channel
     broadcast(socket, "typing", %{
@@ -103,12 +108,14 @@ defmodule ObeliskWeb.ChatChannel do
         })
 
         # Reply to the sender with additional metadata
-        {:reply, {:ok, %{
-          response: result.response,
-          context_used: result.context_used,
-          history_included: result.history_included,
-          session: session_name
-        }}, socket}
+        {:reply,
+         {:ok,
+          %{
+            response: result.response,
+            context_used: result.context_used,
+            history_included: result.history_included,
+            session: session_name
+          }}, socket}
 
       {:error, reason} ->
         # Stop typing indicator
@@ -147,32 +154,7 @@ defmodule ObeliskWeb.ChatChannel do
         # Send immediate reply to confirm streaming started
         # Then spawn async process for the actual streaming
         spawn(fn ->
-          # Simulate streaming by breaking response into chunks
-          response_words = String.split(result.response, " ")
-
-          # Send each word as a stream chunk
-          Enum.each(response_words, fn word ->
-            push(socket, "stream_chunk", %{
-              content: word <> " ",
-              session: session_name
-            })
-            Process.sleep(50)  # Simulate typing delay
-          end)
-
-          # Send stream completion
-          push(socket, "stream_complete", %{
-            session: session_name,
-            metadata: %{
-              context_used: result.context_used,
-              history_included: result.history_included
-            }
-          })
-
-          # Stop typing indicator
-          broadcast(socket, "typing", %{
-            user: "assistant",
-            typing: false
-          })
+          send_streaming_response(socket, result, session_name)
         end)
 
         {:reply, {:ok, %{streaming: true, session: session_name}}, socket}
@@ -264,6 +246,37 @@ defmodule ObeliskWeb.ChatChannel do
         tool_name: Map.get(msg, :tool_name)
       }
     end)
+  end
+
+  defp send_streaming_response(socket, result, session_name) do
+    # Simulate streaming by breaking response into chunks
+    response_words = String.split(result.response, " ")
+
+    # Send each word as a stream chunk
+    Enum.each(response_words, fn word ->
+      push(socket, "stream_chunk", %{
+        content: word <> " ",
+        session: session_name
+      })
+
+      # Simulate typing delay
+      Process.sleep(50)
+    end)
+
+    # Send stream completion
+    push(socket, "stream_complete", %{
+      session: session_name,
+      metadata: %{
+        context_used: result.context_used,
+        history_included: result.history_included
+      }
+    })
+
+    # Stop typing indicator
+    broadcast(socket, "typing", %{
+      user: "assistant",
+      typing: false
+    })
   end
 
   defp format_error({:llm_failed, reason}), do: "LLM error: #{inspect(reason)}"
