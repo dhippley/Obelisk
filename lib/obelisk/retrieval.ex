@@ -27,8 +27,8 @@ defmodule Obelisk.Retrieval do
   ## Examples
       # Search in session + global memories
       Retrieval.retrieve("How to deploy Phoenix?", session_id, 5)
-      
-      # Search only global memories  
+
+      # Search only global memories
       Retrieval.retrieve("What is Elixir?", nil, 10)
   """
   def retrieve(query_text, session_id \\ nil, k \\ @default_k, opts \\ %{})
@@ -90,7 +90,7 @@ defmodule Obelisk.Retrieval do
 
   defp query_global_only(embedding, k, threshold) do
     sql = """
-    SELECT 
+    SELECT
       mc.id,
       mc.text,
       mc.memory_id,
@@ -110,7 +110,7 @@ defmodule Obelisk.Retrieval do
 
   defp query_session_and_global(embedding, session_id, k, threshold) do
     sql = """
-    SELECT 
+    SELECT
       mc.id,
       mc.text,
       mc.memory_id,
@@ -130,7 +130,7 @@ defmodule Obelisk.Retrieval do
 
   defp query_session_only(embedding, session_id, k, threshold) do
     sql = """
-    SELECT 
+    SELECT
       mc.id,
       mc.text,
       mc.memory_id,
