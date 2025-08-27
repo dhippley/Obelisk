@@ -7,6 +7,7 @@ defmodule Obelisk.Memory do
 
   import Ecto.Query
   alias Obelisk.{Embeddings, Repo}
+  alias Obelisk.Embeddings.Queue
   alias Obelisk.Schemas.{Memory, MemoryChunk, Session}
 
   @default_chunk_size 1000
@@ -44,12 +45,40 @@ defmodule Obelisk.Memory do
 
   @doc """
   Store a memory without automatic chunking (stores as single chunk).
+
+  ## Parameters
+  - `attrs` - Memory attributes including:
+    - `async` - Whether to use async embedding (default: false)
   """
   def store_memory_simple(attrs) do
+    use_async = Map.get(attrs, :async, false)
+
+    if use_async do
+      store_memory_simple_async(attrs)
+    else
+      store_memory_simple_sync(attrs)
+    end
+  end
+
+  defp store_memory_simple_sync(attrs) do
     Repo.transaction(fn ->
       with {:ok, memory} <- create_memory(attrs),
            {:ok, embedding} <- Embeddings.embed_text(attrs.text),
            {:ok, chunk} <- create_single_chunk(memory, attrs.text, embedding) do
+        %{memory | memory_chunks: [chunk]}
+      else
+        {:error, reason} -> Repo.rollback(reason)
+      end
+    end)
+  end
+
+  defp store_memory_simple_async(attrs) do
+    Repo.transaction(fn ->
+      with {:ok, memory} <- create_memory(attrs),
+           {:ok, chunk} <- create_single_chunk_no_embedding(memory, attrs.text) do
+        # Queue embedding job for async processing
+        Queue.enqueue_chunk_embedding(chunk.id, attrs.text)
+
         %{memory | memory_chunks: [chunk]}
       else
         {:error, reason} -> Repo.rollback(reason)
@@ -144,6 +173,17 @@ defmodule Obelisk.Memory do
     |> MemoryChunk.changeset(%{
       text: text,
       embedding: embedding,
+      memory_id: memory.id
+    })
+    |> Repo.insert()
+  end
+
+  defp create_single_chunk_no_embedding(memory, text) do
+    %MemoryChunk{}
+    |> MemoryChunk.changeset(%{
+      text: text,
+      # Will be filled by async processing
+      embedding: nil,
       memory_id: memory.id
     })
     |> Repo.insert()

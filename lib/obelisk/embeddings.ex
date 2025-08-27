@@ -3,8 +3,12 @@ defmodule Obelisk.Embeddings do
   Embedding generation for text using various providers.
 
   Currently supports OpenAI's text-embedding-3-small model.
+
+  Provides both synchronous embedding generation and asynchronous processing
+  through the Broadway pipeline for improved efficiency and rate limiting.
   """
 
+  alias Obelisk.Embeddings.Queue
   alias Req
 
   @openai_base_url "https://api.openai.com/v1"
@@ -32,6 +36,33 @@ defmodule Obelisk.Embeddings do
   end
 
   @doc """
+  Generate embeddings asynchronously through the Broadway pipeline.
+
+  This is more efficient for multiple embeddings as it batches API calls.
+
+  ## Parameters
+  - `text`: The text to embed
+  - `timeout`: Optional timeout in milliseconds (default: 30 seconds)
+
+  ## Returns
+  - `{:ok, embedding_vector}` on success
+  - `{:error, reason}` on failure
+  """
+  def embed_text_async(text, timeout \\ 30_000) when is_binary(text) do
+    Queue.embed_sync(text, timeout)
+  end
+
+  @doc """
+  Generate embeddings asynchronously without blocking.
+
+  Returns immediately with a reference. The caller will receive:
+  `{:embedding_result, ref, {:ok, embedding} | {:error, reason}}`
+  """
+  def embed_text_async_nowait(text) when is_binary(text) do
+    Queue.embed_async(text)
+  end
+
+  @doc """
   Get the dimensions of embeddings for the configured model.
   """
   def embedding_dimensions(opts \\ %{}) do
@@ -44,6 +75,13 @@ defmodule Obelisk.Embeddings do
       # fallback
       _ -> @embedding_dimensions
     end
+  end
+
+  @doc """
+  Get queue status and processing information.
+  """
+  def queue_info do
+    Queue.queue_info()
   end
 
   # Private functions

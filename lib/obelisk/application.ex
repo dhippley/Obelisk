@@ -12,6 +12,8 @@ defmodule Obelisk.Application do
       Obelisk.Repo,
       {DNSCluster, query: Application.get_env(:obelisk, :dns_cluster_query) || :ignore},
       {Phoenix.PubSub, name: Obelisk.PubSub},
+      # Embedding processing pipeline
+      Obelisk.Embeddings.Pipeline,
       # Start a worker by calling: Obelisk.Worker.start_link(arg)
       # {Obelisk.Worker, arg},
       # Start to serve requests, typically the last entry
