@@ -23,7 +23,7 @@ defmodule Obelisk.LLM do
   Send a streaming chat completion request to the LLM provider.
 
   ## Parameters
-  - `messages`: List of message maps with `role` and `content` keys  
+  - `messages`: List of message maps with `role` and `content` keys
   - `opts`: Options map that may include `model`, `temperature`, `provider`, etc.
   - `callback`: Function called with each streaming chunk
 

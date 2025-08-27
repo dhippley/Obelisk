@@ -57,7 +57,7 @@ defmodule Obelisk.LLM.OpenAI do
       reraise RuntimeError, """
       OPENAI_API_KEY environment variable is required but not set.
       Please set your OpenAI API key:
-        
+
         export OPENAI_API_KEY=sk-...
       """, __STACKTRACE__
   end
