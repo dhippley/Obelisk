@@ -16,7 +16,7 @@ defmodule ObeliskWeb.Api.V1.ChatController do
   ```json
   {
     "message": "What is Elixir?",
-    "session_id": "optional-session-name", 
+    "session_id": "optional-session-name",
     "stream": false,
     "options": {
       "retrieval_k": 5,
