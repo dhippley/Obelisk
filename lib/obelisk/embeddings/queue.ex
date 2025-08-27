@@ -80,7 +80,7 @@ defmodule Obelisk.Embeddings.Queue do
   More efficient than direct embedding for repeated text as it benefits from batching.
 
   ## Parameters
-  - `text`: Text to embed  
+  - `text`: Text to embed
   - `timeout`: Timeout in milliseconds (default: 30 seconds)
 
   ## Returns

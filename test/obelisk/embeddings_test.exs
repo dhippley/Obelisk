@@ -81,7 +81,7 @@ defmodule Obelisk.EmbeddingsTest do
 
         assert is_list(embedding)
         assert length(embedding) == 1536
-        assert_called(Obelisk.Embeddings.Queue.embed_sync("test text", 30_000))
+        assert_called(Queue.embed_sync("test text", 30_000))
       end
     end
 
@@ -90,7 +90,7 @@ defmodule Obelisk.EmbeddingsTest do
         embed_sync: fn _text, _timeout -> {:ok, List.duplicate(0.1, 1536)} end do
         Embeddings.embed_text_async("test text", 5000)
 
-        assert_called(Obelisk.Embeddings.Queue.embed_sync("test text", 5000))
+        assert_called(Queue.embed_sync("test text", 5000))
       end
     end
   end
@@ -99,22 +99,22 @@ defmodule Obelisk.EmbeddingsTest do
     test "calls queue for async embedding without waiting" do
       ref = make_ref()
 
-      with_mock Obelisk.Embeddings.Queue, embed_async: fn _text -> {:ok, ref} end do
+      with_mock Queue, embed_async: fn _text -> {:ok, ref} end do
         {:ok, returned_ref} = Embeddings.embed_text_async_nowait("test text")
 
         assert returned_ref == ref
-        assert_called(Obelisk.Embeddings.Queue.embed_async("test text"))
+        assert_called(Queue.embed_async("test text"))
       end
     end
   end
 
   describe "queue_info/0" do
     test "returns queue information" do
-      with_mock Obelisk.Embeddings.Queue, queue_info: fn -> %{status: :running} end do
+      with_mock Queue, queue_info: fn -> %{status: :running} end do
         info = Embeddings.queue_info()
 
         assert info == %{status: :running}
-        assert_called(Obelisk.Embeddings.Queue.queue_info())
+        assert_called(Queue.queue_info())
       end
     end
   end
