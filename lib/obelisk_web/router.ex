@@ -20,10 +20,25 @@ defmodule ObeliskWeb.Router do
     get "/", PageController, :home
   end
 
-  # Other scopes may use custom stacks.
-  # scope "/api", ObeliskWeb do
-  #   pipe_through :api
-  # end
+  # API routes
+  scope "/api/v1", ObeliskWeb.Api.V1 do
+    pipe_through :api
+
+    # Chat endpoints
+    post "/chat", ChatController, :create
+    get "/chat/:session_id", ChatController, :show
+
+    # Memory endpoints
+    post "/memory/search", MemoryController, :search
+    post "/memory", MemoryController, :create
+    get "/memory", MemoryController, :index
+
+    # Session endpoints
+    get "/sessions", SessionController, :index
+    post "/sessions", SessionController, :create
+    get "/sessions/:id", SessionController, :show
+    delete "/sessions/:id", SessionController, :delete
+  end
 
   # Enable LiveDashboard and Swoosh mailbox preview in development
   if Application.compile_env(:obelisk, :dev_routes) do
