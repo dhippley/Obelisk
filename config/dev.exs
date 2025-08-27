@@ -86,3 +86,44 @@ config :phoenix_live_view,
 
 # Disable swoosh api client as it is only required for production adapters.
 config :swoosh, :api_client, false
+
+# Development-specific Obelisk settings
+config :obelisk,
+  # Enable more verbose logging in development
+  log_level: :debug,
+  # Disable async processing in dev for easier debugging
+  async_embedding: false,
+  # Smaller batch sizes for faster feedback
+  embedding_batch_size: 5
+
+# LLM Provider development settings
+# These can be overridden with environment variables
+
+# OpenAI settings (default provider)
+config :obelisk, :openai,
+  # Will be read from OPENAI_API_KEY environment variable
+  api_key: {:system, "OPENAI_API_KEY"},
+  # Default model for development (cheaper)
+  model: System.get_env("OPENAI_MODEL", "gpt-4o-mini"),
+  base_url: "https://api.openai.com/v1"
+
+# Anthropic settings
+config :obelisk, :anthropic,
+  # Will be read from ANTHROPIC_API_KEY environment variable  
+  api_key: {:system, "ANTHROPIC_API_KEY"},
+  model: System.get_env("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+  base_url: "https://api.anthropic.com/v1"
+
+# Ollama settings (for local development)
+config :obelisk, :ollama,
+  base_url: System.get_env("OLLAMA_BASE_URL", "http://localhost:11434"),
+  model: System.get_env("OLLAMA_MODEL", "llama3.2"),
+  # Timeout for local models (they can be slower)
+  timeout: 60_000
+
+# Embedding service settings
+config :obelisk, :embeddings,
+  provider: "openai",
+  model: "text-embedding-3-small",
+  # Smaller dimensions for development
+  dimensions: 1536

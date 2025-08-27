@@ -45,7 +45,7 @@ defmodule ObeliskWeb.ChatLive do
       })
       |> assign(:sidebar_open, true)
       |> assign(:current_provider, "openai")
-      |> assign(:available_providers, LLM.Router.available_providers())
+      |> assign(:available_providers, Obelisk.LLM.Router.available_providers())
 
     {:ok, socket}
   end

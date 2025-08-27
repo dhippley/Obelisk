@@ -116,4 +116,65 @@ if config_env() == :prod do
   #     config :swoosh, :api_client, Swoosh.ApiClient.Req
   #
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
+
+  # Configure Obelisk LLM providers for production
+  
+  # OpenAI configuration
+  if openai_api_key = System.get_env("OPENAI_API_KEY") do
+    config :obelisk, :openai,
+      api_key: openai_api_key,
+      model: System.get_env("OPENAI_MODEL", "gpt-4o-mini"),
+      base_url: System.get_env("OPENAI_BASE_URL", "https://api.openai.com/v1")
+  end
+
+  # Anthropic configuration
+  if anthropic_api_key = System.get_env("ANTHROPIC_API_KEY") do
+    config :obelisk, :anthropic,
+      api_key: anthropic_api_key,
+      model: System.get_env("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
+      base_url: System.get_env("ANTHROPIC_BASE_URL", "https://api.anthropic.com/v1")
+  end
+
+  # Ollama configuration (for self-hosted deployments)
+  if ollama_base_url = System.get_env("OLLAMA_BASE_URL") do
+    config :obelisk, :ollama,
+      base_url: ollama_base_url,
+      model: System.get_env("OLLAMA_MODEL", "llama3.2"),
+      timeout: String.to_integer(System.get_env("OLLAMA_TIMEOUT", "60000"))
+  end
+
+  # Embedding service configuration
+  config :obelisk, :embeddings,
+    provider: System.get_env("EMBEDDING_PROVIDER", "openai"),
+    model: System.get_env("EMBEDDING_MODEL", "text-embedding-3-small"),
+    dimensions: String.to_integer(System.get_env("EMBEDDING_DIMENSIONS", "1536"))
+
+  # Production Obelisk settings
+  config :obelisk,
+    # Production should use async processing
+    async_embedding: String.to_existing_atom(System.get_env("ASYNC_EMBEDDING", "true")),
+    # Larger batch sizes for better throughput
+    embedding_batch_size: String.to_integer(System.get_env("EMBEDDING_BATCH_SIZE", "20")),
+    # Default provider
+    default_llm_provider: System.get_env("DEFAULT_LLM_PROVIDER", "openai"),
+    # Memory settings
+    memory_chunk_size: String.to_integer(System.get_env("MEMORY_CHUNK_SIZE", "1000")),
+    memory_chunk_overlap: String.to_integer(System.get_env("MEMORY_CHUNK_OVERLAP", "200")),
+    # Retrieval settings
+    default_retrieval_k: String.to_integer(System.get_env("DEFAULT_RETRIEVAL_K", "5")),
+    default_similarity_threshold: String.to_float(System.get_env("DEFAULT_SIMILARITY_THRESHOLD", "0.7"))
+
+  # Broadway configuration for production
+  config :obelisk, Obelisk.Embeddings.Pipeline,
+    processors: [
+      default: [
+        stages: String.to_integer(System.get_env("BROADWAY_PROCESSORS", "4"))
+      ]
+    ],
+    batchers: [
+      default: [
+        batch_size: String.to_integer(System.get_env("BROADWAY_BATCH_SIZE", "20")),
+        batch_timeout: String.to_integer(System.get_env("BROADWAY_BATCH_TIMEOUT", "5000"))
+      ]
+    ]
 end

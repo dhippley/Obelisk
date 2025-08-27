@@ -14,6 +14,19 @@ config :obelisk,
 # Configure pgvector support
 config :obelisk, Obelisk.Repo, types: ObeliskPostgrexTypes
 
+# Configure Obelisk application settings
+config :obelisk,
+  # Default LLM provider
+  default_llm_provider: "openai",
+  # Default embedding model
+  default_embedding_model: "text-embedding-3-small",
+  # Memory settings
+  memory_chunk_size: 1000,
+  memory_chunk_overlap: 200,
+  # Retrieval settings
+  default_retrieval_k: 5,
+  default_similarity_threshold: 0.7
+
 # Configures the endpoint
 config :obelisk, ObeliskWeb.Endpoint,
   url: [host: "localhost"],
@@ -24,6 +37,23 @@ config :obelisk, ObeliskWeb.Endpoint,
   ],
   pubsub_server: Obelisk.PubSub,
   live_view: [signing_salt: "bJePgReu"]
+
+# Configure PubSub
+config :obelisk, Obelisk.PubSub,
+  name: Obelisk.PubSub,
+  adapter: Phoenix.PubSub.PG2
+
+# Configure Broadway pipeline for embedding processing
+config :obelisk, Obelisk.Embeddings.Pipeline,
+  # Number of Broadway processors (adjust based on your needs)
+  processors: [default: [stages: 2]],
+  # Batch settings for efficient processing
+  batchers: [
+    default: [
+      batch_size: 10,
+      batch_timeout: 2000
+    ]
+  ]
 
 # Configures the mailer
 #
