@@ -41,7 +41,7 @@ defmodule Obelisk.Tooling do
   ## Returns
   List of tool specifications including:
   - `name` - Tool identifier
-  - `description` - Human-readable description  
+  - `description` - Human-readable description
   - `params` - JSON Schema for parameters
   """
   def catalog do

@@ -25,7 +25,7 @@ defmodule Obelisk.MCP.Server do
       # List tools request
       {"jsonrpc": "2.0", "id": 1, "method": "tools/list"}
 
-      # Call tool request  
+      # Call tool request
       {"jsonrpc": "2.0", "id": 2, "method": "tools/call", "params": {"name": "echo", "arguments": {"message": "hello"}}}
 
   """
