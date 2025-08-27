@@ -93,6 +93,7 @@ defmodule Obelisk.MixProject do
 
       # Testing
       {:lazy_html, ">= 0.1.0", only: :test},
+      {:mock, "~> 0.3.0", only: :test},
 
       # Code Quality
       {:credo, "~> 1.7", only: [:dev, :test], runtime: false},
