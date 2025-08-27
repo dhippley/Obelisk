@@ -40,15 +40,41 @@ defmodule Obelisk.MixProject do
   # Type `mix help deps` for examples and options.
   defp deps do
     [
+      # Phoenix & Web
       {:phoenix, "~> 1.8.0"},
       {:phoenix_ecto, "~> 4.5"},
-      {:ecto_sql, "~> 3.13"},
-      {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.1.0"},
-      {:lazy_html, ">= 0.1.0", only: :test},
       {:phoenix_live_dashboard, "~> 0.8.3"},
+      {:bandit, "~> 1.5"},
+
+      # Database & Storage
+      {:ecto_sql, "~> 3.13"},
+      {:postgrex, "~> 0.17"},
+      {:pgvector, "~> 0.3"},
+
+      # HTTP & Networking
+      {:req, "~> 0.5"},
+      {:finch, "~> 0.18"},
+
+      # JSON & Configuration
+      {:jason, "~> 1.4"},
+      {:yaml_elixir, "~> 2.9"},
+
+      # Machine Learning & Embeddings
+      {:nx, "~> 0.7"},
+      {:bumblebee, "~> 0.5"},
+
+      # Concurrency & Streaming
+      {:broadway, "~> 1.0"},
+
+      # Observability & Telemetry
+      {:telemetry_metrics, "~> 1.0"},
+      {:telemetry_poller, "~> 1.0"},
+      {:opentelemetry_exporter, "~> 1.7"},
+
+      # Assets & Development
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.3", runtime: Mix.env() == :dev},
       {:heroicons,
@@ -58,14 +84,14 @@ defmodule Obelisk.MixProject do
        app: false,
        compile: false,
        depth: 1},
+
+      # Utilities
       {:swoosh, "~> 1.16"},
-      {:req, "~> 0.5"},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 0.26"},
-      {:jason, "~> 1.2"},
       {:dns_cluster, "~> 0.2.0"},
-      {:bandit, "~> 1.5"}
+
+      # Testing
+      {:lazy_html, ">= 0.1.0", only: :test}
     ]
   end
 
