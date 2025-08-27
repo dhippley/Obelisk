@@ -19,6 +19,7 @@ defmodule ObeliskWeb.Router do
 
     get "/", PageController, :home
     live "/chat", ChatLive, :index
+    live "/memory", MemoryLive, :index
   end
 
   # API routes
