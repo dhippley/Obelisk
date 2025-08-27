@@ -67,28 +67,34 @@ defmodule Obelisk.LLM.OpenAI do
   defp process_stream_chunk(chunk, callback) do
     chunk
     |> String.split("\n")
-    |> Enum.each(fn line ->
-      case String.trim(line) do
-        "data: [DONE]" ->
-          callback.(%{type: :done})
-
-        "data: " <> data ->
-          case Jason.decode(data) do
-            {:ok, %{"choices" => [%{"delta" => delta} | _]}} ->
-              if content = delta["content"] do
-                callback.(%{type: :content, content: content})
-              end
-
-            _ ->
-              :ignore
-          end
-
-        _ ->
-          :ignore
-      end
-    end)
+    |> Enum.each(&process_stream_line(&1, callback))
   rescue
     _error -> :ignore
+  end
+
+  defp process_stream_line(line, callback) do
+    case String.trim(line) do
+      "data: [DONE]" ->
+        callback.(%{type: :done})
+
+      "data: " <> data ->
+        process_stream_data(data, callback)
+
+      _ ->
+        :ignore
+    end
+  end
+
+  defp process_stream_data(data, callback) do
+    case Jason.decode(data) do
+      {:ok, %{"choices" => [%{"delta" => delta} | _]}} ->
+        if content = delta["content"] do
+          callback.(%{type: :content, content: content})
+        end
+
+      _ ->
+        :ignore
+    end
   end
 
   # Private functions

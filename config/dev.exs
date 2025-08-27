@@ -109,7 +109,7 @@ config :obelisk, :openai,
 
 # Anthropic settings
 config :obelisk, :anthropic,
-  # Will be read from ANTHROPIC_API_KEY environment variable  
+  # Will be read from ANTHROPIC_API_KEY environment variable
   api_key: {:system, "ANTHROPIC_API_KEY"},
   model: System.get_env("ANTHROPIC_MODEL", "claude-3-5-sonnet-20241022"),
   base_url: "https://api.anthropic.com/v1"

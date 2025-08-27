@@ -118,7 +118,7 @@ if config_env() == :prod do
   # See https://hexdocs.pm/swoosh/Swoosh.html#module-installation for details.
 
   # Configure Obelisk LLM providers for production
-  
+
   # OpenAI configuration
   if openai_api_key = System.get_env("OPENAI_API_KEY") do
     config :obelisk, :openai,
@@ -162,7 +162,8 @@ if config_env() == :prod do
     memory_chunk_overlap: String.to_integer(System.get_env("MEMORY_CHUNK_OVERLAP", "200")),
     # Retrieval settings
     default_retrieval_k: String.to_integer(System.get_env("DEFAULT_RETRIEVAL_K", "5")),
-    default_similarity_threshold: String.to_float(System.get_env("DEFAULT_SIMILARITY_THRESHOLD", "0.7"))
+    default_similarity_threshold:
+      String.to_float(System.get_env("DEFAULT_SIMILARITY_THRESHOLD", "0.7"))
 
   # Broadway configuration for production
   config :obelisk, Obelisk.Embeddings.Pipeline,

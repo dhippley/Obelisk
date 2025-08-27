@@ -2,7 +2,7 @@ defmodule Obelisk.LLM.RouterTest do
   use ExUnit.Case, async: true
   import Mock
 
-  alias Obelisk.LLM.{Router, OpenAI}
+  alias Obelisk.LLM.{OpenAI, Router}
 
   describe "available_providers/0" do
     test "returns list of available providers" do

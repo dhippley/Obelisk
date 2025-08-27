@@ -12,7 +12,7 @@ defmodule ObeliskWeb.ChatLive do
 
   use ObeliskWeb, :live_view
 
-  alias Obelisk.{Chat, Memory, Retrieval}
+  alias Obelisk.{Chat, LLM.Router, Memory, Retrieval}
 
   @impl true
   def mount(_params, _session, socket) do
@@ -45,7 +45,7 @@ defmodule ObeliskWeb.ChatLive do
       })
       |> assign(:sidebar_open, true)
       |> assign(:current_provider, "openai")
-      |> assign(:available_providers, Obelisk.LLM.Router.available_providers())
+      |> assign(:available_providers, Router.available_providers())
 
     {:ok, socket}
   end

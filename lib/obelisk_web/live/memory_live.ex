@@ -252,7 +252,7 @@ defmodule ObeliskWeb.MemoryLive do
     LIMIT $2
     """
 
-    case Obelisk.Repo.query(sql, [query, limit]) do
+    case Ecto.Adapters.SQL.query(Obelisk.Repo, sql, [query, limit]) do
       {:ok, %{rows: rows}} ->
         Enum.map(rows, fn [id, text, kind, metadata, inserted_at, rank] ->
           %{
