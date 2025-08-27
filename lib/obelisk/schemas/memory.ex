@@ -12,7 +12,8 @@ defmodule Obelisk.Schemas.Memory do
     field :text, :string
     field :metadata, :map, default: %{}
     field :embedding, Pgvector.Ecto.Vector
-    belongs_to :session, Obelisk.Schemas.Session  # NULL => global memory
+    # NULL => global memory
+    belongs_to :session, Obelisk.Schemas.Session
     has_many :memory_chunks, Obelisk.Schemas.MemoryChunk
     timestamps(updated_at: false)
   end

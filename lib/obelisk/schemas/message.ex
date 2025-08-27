@@ -9,7 +9,8 @@ defmodule Obelisk.Schemas.Message do
 
   schema "messages" do
     field :role, Ecto.Enum, values: @roles
-    field :content, :map  # store text, tool outputs, deltas, etc.
+    # store text, tool outputs, deltas, etc.
+    field :content, :map
     field :tool_name, :string
     belongs_to :session, Obelisk.Schemas.Session
     timestamps()
