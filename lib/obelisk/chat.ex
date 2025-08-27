@@ -6,7 +6,7 @@ defmodule Obelisk.Chat do
   to provide an intelligent chat experience powered by stored memories.
   """
 
-  alias Obelisk.{LLM, Memory, Retrieval, Repo}
+  alias Obelisk.{LLM, Memory, Repo, Retrieval}
   alias Obelisk.Schemas.{Message, Session}
   import Ecto.Query
 
@@ -36,7 +36,8 @@ defmodule Obelisk.Chat do
         max_history: 5
       })
   """
-  def send_message(user_message, session_name, opts \\ %{}) when is_binary(user_message) and is_binary(session_name) do
+  def send_message(user_message, session_name, opts \\ %{})
+      when is_binary(user_message) and is_binary(session_name) do
     with {:ok, session} <- Memory.get_or_create_session(session_name),
          {:ok, _user_msg} <- store_user_message(user_message, session.id),
          {:ok, context} <- retrieve_context(user_message, session.id, opts),
@@ -44,27 +45,28 @@ defmodule Obelisk.Chat do
          {:ok, prompt} <- build_rag_prompt(user_message, context, history),
          {:ok, response} <- get_llm_response(prompt, opts),
          {:ok, _assistant_msg} <- store_assistant_message(response, session.id) do
-      {:ok, %{
-        response: response,
-        session: session_name,
-        context_used: length(context),
-        history_included: length(history)
-      }}
+      {:ok,
+       %{
+         response: response,
+         session: session_name,
+         context_used: length(context),
+         history_included: length(history)
+       }}
     else
       {:error, reason} -> {:error, reason}
       error -> {:error, {:unexpected_error, error}}
     end
   end
 
-    @doc """
+  @doc """
   Get conversation history for a session.
-  
+
   Returns list of messages ordered by most recent first.
   """
   def get_conversation_history(session_id, opts \\ %{}) do
     max_history = Map.get(opts, :max_history, @default_max_history)
-    
-    messages = 
+
+    messages =
       from(m in Message,
         where: m.session_id == ^session_id,
         order_by: [desc: m.inserted_at],
@@ -72,13 +74,14 @@ defmodule Obelisk.Chat do
         select: %{role: m.role, content: m.content, inserted_at: m.inserted_at}
       )
       |> Repo.all()
-      |> Enum.map(fn msg -> 
+      |> Enum.map(fn msg ->
         # Extract text from content map for simple display
         content = get_in(msg.content, ["text"]) || msg.content
         %{msg | content: content}
       end)
-      |> Enum.reverse()  # Reverse to get chronological order
-    
+      # Reverse to get chronological order
+      |> Enum.reverse()
+
     {:ok, messages}
   end
 
@@ -89,10 +92,13 @@ defmodule Obelisk.Chat do
   """
   def clear_history(session_name) when is_binary(session_name) do
     case get_session_by_name(session_name) do
-      nil -> {:error, :session_not_found}
+      nil ->
+        {:error, :session_not_found}
+
       session ->
         from(m in Message, where: m.session_id == ^session.id)
         |> Repo.delete_all()
+
         {:ok, :cleared}
     end
   end
@@ -130,7 +136,8 @@ defmodule Obelisk.Chat do
     case Retrieval.retrieve(query, session_id, k, retrieval_opts) do
       {:ok, results} -> {:ok, results}
       {:error, reason} -> {:error, {:retrieval_failed, reason}}
-      results when is_list(results) -> {:ok, results}  # Handle direct list return
+      # Handle direct list return
+      results when is_list(results) -> {:ok, results}
     end
   end
 
@@ -149,31 +156,29 @@ defmodule Obelisk.Chat do
     context_section =
       if context != [] do
         context_text =
-          context
-          |> Enum.map(fn chunk -> "- #{chunk.text}" end)
-          |> Enum.join("\n")
+          Enum.map_join(context, "\n", fn chunk -> "- #{chunk.text}" end)
 
         "\n\nRelevant context from memory:\n#{context_text}\n"
       else
         ""
       end
 
-        history_section =
+    history_section =
       if history != [] do
-        history_text = 
-          history
-          |> Enum.map(fn msg -> 
+        history_text =
+          Enum.map_join(history, "\n", fn msg ->
             content = msg.content || "No content"
-            "#{String.capitalize(to_string(msg.role))}: #{content}" 
+            "#{String.capitalize(to_string(msg.role))}: #{content}"
           end)
-          |> Enum.join("\n")
-          
+
         "\n\nConversation history:\n#{history_text}\n"
       else
         ""
       end
 
-    prompt = system_prompt <> context_section <> history_section <> "\n\nUser: #{user_message}\nAssistant:"
+    prompt =
+      system_prompt <>
+        context_section <> history_section <> "\n\nUser: #{user_message}\nAssistant:"
 
     {:ok, prompt}
   end

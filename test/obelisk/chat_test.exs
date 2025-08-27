@@ -3,20 +3,22 @@ defmodule Obelisk.ChatTest do
   import Mock
 
   alias Obelisk.{Chat, Memory, Repo}
-  alias Obelisk.Schemas.{Message, Session}
   alias Obelisk.Schemas.Memory, as: MemorySchema
+  alias Obelisk.Schemas.{Message, Session}
 
   setup do
     # Create test session with some memories
     {:ok, session} = Memory.get_or_create_session("test-chat-session")
 
     # Create some test memories for RAG context
-    embedding = List.duplicate(0.9, 1536)  # High similarity for testing
+    # High similarity for testing
+    embedding = List.duplicate(0.9, 1536)
 
     {:ok, _memory1} =
       %MemorySchema{
         kind: :fact,
-        text: "Elixir is a dynamic, functional language designed for maintainability and high availability.",
+        text:
+          "Elixir is a dynamic, functional language designed for maintainability and high availability.",
         embedding: embedding,
         session_id: session.id
       }
@@ -25,7 +27,8 @@ defmodule Obelisk.ChatTest do
     {:ok, _memory2} =
       %MemorySchema{
         kind: :fact,
-        text: "Phoenix is a web development framework written in Elixir using the Model-View-Controller pattern.",
+        text:
+          "Phoenix is a web development framework written in Elixir using the Model-View-Controller pattern.",
         embedding: embedding,
         session_id: session.id
       }
@@ -35,7 +38,8 @@ defmodule Obelisk.ChatTest do
     {:ok, _global_memory} =
       %MemorySchema{
         kind: :note,
-        text: "Global knowledge: OTP (Open Telecom Platform) is the foundation of Elixir applications.",
+        text:
+          "Global knowledge: OTP (Open Telecom Platform) is the foundation of Elixir applications.",
         embedding: embedding,
         session_id: nil
       }
@@ -45,24 +49,27 @@ defmodule Obelisk.ChatTest do
   end
 
   describe "send_message/3" do
-    @tag :skip_llm  # Skip in CI where no API key is available
+    # Skip in CI where no API key is available
+    @tag :skip_llm
     test "sends basic chat message and stores conversation", %{session: _session} do
       user_message = "What is Elixir?"
       unique_session = "test-basic-chat-#{:erlang.system_time()}"
 
       # Mock both LLM and Retrieval calls
       with_mocks([
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:ok, "Elixir is a great language!"} end]},
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> [] end]}
+        {Obelisk.LLM.Router, [],
+         [chat: fn _messages, _opts -> {:ok, "Elixir is a great language!"} end]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
       ]) do
         {:ok, result} = Chat.send_message(user_message, unique_session)
 
         assert result.response == "Elixir is a great language!"
         assert result.session == unique_session
         assert result.context_used >= 0
-        assert result.history_included >= 0  # Should have minimal history for new session
+        # Should have minimal history for new session
+        assert result.history_included >= 0
 
-        # Check messages were stored 
+        # Check messages were stored
         {:ok, new_session} = Memory.get_or_create_session(unique_session)
         messages = from(m in Message, where: m.session_id == ^new_session.id) |> Repo.all()
         assert length(messages) == 2
@@ -79,8 +86,9 @@ defmodule Obelisk.ChatTest do
       new_session_name = "brand-new-session"
 
       with_mocks([
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:ok, "Hello! I'm ready to help."} end]},
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> [] end]}
+        {Obelisk.LLM.Router, [],
+         [chat: fn _messages, _opts -> {:ok, "Hello! I'm ready to help."} end]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
       ]) do
         {:ok, result} = Chat.send_message("Hello", new_session_name)
 
@@ -94,10 +102,10 @@ defmodule Obelisk.ChatTest do
 
     test "includes conversation history in subsequent messages", %{session: _session} do
       unique_session = "test-history-#{:erlang.system_time()}"
-      
+
       with_mocks([
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:ok, "Mock response"} end]},
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> [] end]}
+        {Obelisk.LLM.Router, [], [chat: fn _messages, _opts -> {:ok, "Mock response"} end]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
       ]) do
         # Send first message
         {:ok, _} = Chat.send_message("First message", unique_session)
@@ -105,14 +113,15 @@ defmodule Obelisk.ChatTest do
         # Send second message - should include history
         {:ok, result} = Chat.send_message("Second message", unique_session)
 
-        assert result.history_included >= 2  # Should include previous user + assistant messages
+        # Should include previous user + assistant messages
+        assert result.history_included >= 2
       end
     end
 
     test "handles LLM errors gracefully", %{session: session} do
       with_mocks([
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:error, :api_error} end]},
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> [] end]}
+        {Obelisk.LLM.Router, [], [chat: fn _messages, _opts -> {:error, :api_error} end]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
       ]) do
         result = Chat.send_message("Test message", session.name)
 
@@ -127,8 +136,8 @@ defmodule Obelisk.ChatTest do
 
     test "respects retrieval_k option", %{session: session} do
       with_mocks([
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:ok, "Response"} end]},
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> [] end]}
+        {Obelisk.LLM.Router, [], [chat: fn _messages, _opts -> {:ok, "Response"} end]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
       ]) do
         {:ok, result} = Chat.send_message("Tell me about Elixir", session.name, %{retrieval_k: 1})
 
@@ -139,8 +148,8 @@ defmodule Obelisk.ChatTest do
 
     test "respects max_history option", %{session: session} do
       with_mocks([
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:ok, "Response"} end]},
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> [] end]}
+        {Obelisk.LLM.Router, [], [chat: fn _messages, _opts -> {:ok, "Response"} end]},
+        {Obelisk.Retrieval, [], [retrieve: fn _query, _session_id, _k, _opts -> [] end]}
       ]) do
         # Create several messages first
         for i <- 1..5 do
@@ -156,8 +165,10 @@ defmodule Obelisk.ChatTest do
 
     test "handles retrieval errors gracefully", %{session: session} do
       with_mocks([
-        {Obelisk.Retrieval, [], [retrieve: fn(_query, _session_id, _k, _opts) -> {:error, :embedding_failed} end]},
-        {Obelisk.LLM.Router, [], [chat: fn(_messages, _opts) -> {:ok, "Response without context"} end]}
+        {Obelisk.Retrieval, [],
+         [retrieve: fn _query, _session_id, _k, _opts -> {:error, :embedding_failed} end]},
+        {Obelisk.LLM.Router, [],
+         [chat: fn _messages, _opts -> {:ok, "Response without context"} end]}
       ]) do
         result = Chat.send_message("Test", session.name)
 
@@ -201,8 +212,10 @@ defmodule Obelisk.ChatTest do
       {:ok, history} = Chat.get_conversation_history(session.id)
 
       assert length(history) == 3
-      assert hd(history).content == "First message"  # Oldest first
-      assert List.last(history).content == "Second message"  # Newest last
+      # Oldest first
+      assert hd(history).content == "First message"
+      # Newest last
+      assert List.last(history).content == "Second message"
     end
 
     test "respects max_history limit", %{session: session} do
@@ -215,6 +228,7 @@ defmodule Obelisk.ChatTest do
       {:ok, history} = Chat.get_conversation_history(session.id, %{max_history: 3})
 
       assert length(history) == 3
+
       # Should get the 3 most recent messages (note: timestamps might be the same, so exact order varies)
       message_contents = Enum.map(history, & &1.content)
       # At least check we got recent messages
@@ -234,7 +248,9 @@ defmodule Obelisk.ChatTest do
     test "clears all messages for a session", %{session: session} do
       # Add some messages
       %Message{role: :user, content: %{text: "Test 1"}, session_id: session.id} |> Repo.insert()
-      %Message{role: :assistant, content: %{text: "Response 1"}, session_id: session.id} |> Repo.insert()
+
+      %Message{role: :assistant, content: %{text: "Response 1"}, session_id: session.id}
+      |> Repo.insert()
 
       {:ok, :cleared} = Chat.clear_history(session.name)
 
