@@ -25,25 +25,17 @@ defmodule ObeliskWeb.ChatChannel do
     case Memory.get_or_create_session(session_name) do
       {:ok, session} ->
         # Get recent chat history to send to the joining client
-        case Chat.get_conversation_history(session.id, %{max_history: 20}) do
-          {:ok, history} ->
-            socket =
-              socket
-              |> assign(:session_name, session_name)
-              |> assign(:session_id, session.id)
+        {:ok, history} = Chat.get_conversation_history(session.id, %{max_history: 20})
 
-            # Send chat history to the joining client
-            send(self(), {:after_join, format_messages(history)})
+        socket =
+          socket
+          |> assign(:session_name, session_name)
+          |> assign(:session_id, session.id)
 
-            {:ok, socket}
+        # Send chat history to the joining client
+        send(self(), {:after_join, format_messages(history)})
 
-          {:error, reason} ->
-            Logger.error(
-              "Failed to load chat history for session #{session_name}: #{inspect(reason)}"
-            )
-
-            {:error, %{reason: "Failed to load chat history"}}
-        end
+        {:ok, socket}
 
       {:error, reason} ->
         Logger.error("Failed to create/get session #{session_name}: #{inspect(reason)}")
@@ -191,13 +183,8 @@ defmodule ObeliskWeb.ChatChannel do
     session_id = socket.assigns.session_id
     max_history = Map.get(params, "max_history", 50)
 
-    case Chat.get_conversation_history(session_id, %{max_history: max_history}) do
-      {:ok, history} ->
-        {:reply, {:ok, %{history: format_messages(history)}}, socket}
-
-      {:error, reason} ->
-        {:reply, {:error, %{reason: "Failed to load history: #{inspect(reason)}"}}, socket}
-    end
+    {:ok, history} = Chat.get_conversation_history(session_id, %{max_history: max_history})
+    {:reply, {:ok, %{history: format_messages(history)}}, socket}
   end
 
   def handle_in("clear_history", _params, socket) do

@@ -231,15 +231,6 @@ defmodule ObeliskWeb.ChatChannelTest do
         assert Enum.at(history, 0).role == :user
       end
     end
-
-    test "handles history loading errors", %{socket: socket} do
-      with_mock Chat, get_conversation_history: fn _id, _opts -> {:error, :database_error} end do
-        ref = push(socket, "get_history", %{})
-
-        assert_reply ref, :error, %{reason: reason}
-        assert String.contains?(reason, "Failed to load history")
-      end
-    end
   end
 
   describe "handle_in clear_history" do
