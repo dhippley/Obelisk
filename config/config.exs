@@ -12,8 +12,7 @@ config :obelisk,
   generators: [timestamp_type: :utc_datetime]
 
 # Configure pgvector support
-config :obelisk, Obelisk.Repo,
-  types: ObeliskPostgrexTypes
+config :obelisk, Obelisk.Repo, types: ObeliskPostgrexTypes
 
 # Configures the endpoint
 config :obelisk, ObeliskWeb.Endpoint,

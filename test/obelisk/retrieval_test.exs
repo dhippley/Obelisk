@@ -1,8 +1,8 @@
 defmodule Obelisk.RetrievalTest do
   use Obelisk.DataCase
 
-  alias Obelisk.{Retrieval, Repo}
-  alias Obelisk.Schemas.{Session, Memory, MemoryChunk}
+  alias Obelisk.{Repo, Retrieval}
+  alias Obelisk.Schemas.{Memory, MemoryChunk, Session}
 
   describe "get_memory_chunks/1" do
     test "returns chunks for a specific memory" do
@@ -56,7 +56,7 @@ defmodule Obelisk.RetrievalTest do
     end
 
     test "returns empty list for non-existent memory" do
-      chunks = Retrieval.get_memory_chunks(999999)
+      chunks = Retrieval.get_memory_chunks(999_999)
       assert chunks == []
     end
   end
@@ -127,7 +127,8 @@ defmodule Obelisk.RetrievalTest do
         }
         |> Repo.insert()
 
-      query_embedding = List.duplicate(0.87, 1536)  # Similar to our test data
+      # Similar to our test data
+      query_embedding = List.duplicate(0.87, 1536)
 
       %{
         session: session,
@@ -156,14 +157,22 @@ defmodule Obelisk.RetrievalTest do
 
     test "filters by similarity threshold", %{query_embedding: query_embedding} do
       # High threshold should return fewer results
-      high_threshold_results = Retrieval.retrieve_by_embedding(
-        query_embedding, nil, 10, %{threshold: 0.95}
-      )
+      high_threshold_results =
+        Retrieval.retrieve_by_embedding(
+          query_embedding,
+          nil,
+          10,
+          %{threshold: 0.95}
+        )
 
       # Low threshold should return more results
-      low_threshold_results = Retrieval.retrieve_by_embedding(
-        query_embedding, nil, 10, %{threshold: 0.1}
-      )
+      low_threshold_results =
+        Retrieval.retrieve_by_embedding(
+          query_embedding,
+          nil,
+          10,
+          %{threshold: 0.1}
+        )
 
       assert length(high_threshold_results) <= length(low_threshold_results)
     end
@@ -179,9 +188,10 @@ defmodule Obelisk.RetrievalTest do
     test "includes global memories when session_id is nil", %{query_embedding: query_embedding} do
       results = Retrieval.retrieve_by_embedding(query_embedding, nil, 10, %{threshold: 0.0})
 
-      global_results = Enum.filter(results, fn result ->
-        result.session_id == nil
-      end)
+      global_results =
+        Enum.filter(results, fn result ->
+          result.session_id == nil
+        end)
 
       assert length(global_results) >= 1
     end
@@ -190,30 +200,34 @@ defmodule Obelisk.RetrievalTest do
       session: session,
       query_embedding: query_embedding
     } do
-      results = Retrieval.retrieve_by_embedding(query_embedding, session.id, 10, %{threshold: 0.0})
+      results =
+        Retrieval.retrieve_by_embedding(query_embedding, session.id, 10, %{threshold: 0.0})
 
       # Should include both global and session memories
       has_global = Enum.any?(results, fn result -> result.session_id == nil end)
       has_session = Enum.any?(results, fn result -> result.session_id == session.id end)
 
-      assert has_global or has_session  # Should have at least one type
+      # Should have at least one type
+      assert has_global or has_session
     end
 
     test "excludes global memories when include_global is false", %{
       session: session,
       query_embedding: query_embedding
     } do
-      results = Retrieval.retrieve_by_embedding(
-        query_embedding,
-        session.id,
-        10,
-        %{threshold: 0.0, include_global: false}
-      )
+      results =
+        Retrieval.retrieve_by_embedding(
+          query_embedding,
+          session.id,
+          10,
+          %{threshold: 0.0, include_global: false}
+        )
 
       # Should only include session memories
-      session_only = Enum.all?(results, fn result ->
-        result.session_id == session.id
-      end)
+      session_only =
+        Enum.all?(results, fn result ->
+          result.session_id == session.id
+        end)
 
       assert session_only or results == []
     end
@@ -221,17 +235,21 @@ defmodule Obelisk.RetrievalTest do
 
   describe "error handling" do
     test "handles query errors gracefully" do
-      # Test with invalid embedding (wrong dimensions) 
+      # Test with invalid embedding (wrong dimensions)
       # Note: Some invalid embeddings might return empty results rather than errors
-      invalid_embedding = [0.1, 0.2, 0.3]  # Too few dimensions
-      
+      # Too few dimensions
+      invalid_embedding = [0.1, 0.2, 0.3]
+
       result = Retrieval.retrieve_by_embedding(invalid_embedding)
-      
+
       # Could return either an error or empty results depending on how PostgreSQL handles it
       case result do
-        {:error, {:query_failed, _}} -> :ok  # Error as expected
-        [] -> :ok  # Empty results also acceptable for invalid input
-        results when is_list(results) -> :ok  # Any list result is acceptable
+        # Error as expected
+        {:error, {:query_failed, _}} -> :ok
+        # Empty results also acceptable for invalid input
+        [] -> :ok
+        # Any list result is acceptable
+        results when is_list(results) -> :ok
       end
     end
   end

@@ -1,7 +1,7 @@
 defmodule Obelisk.Schemas.MessageTest do
   use Obelisk.DataCase
 
-  alias Obelisk.Schemas.{Session, Message}
+  alias Obelisk.Schemas.{Message, Session}
 
   setup do
     {:ok, session} =
@@ -18,6 +18,7 @@ defmodule Obelisk.Schemas.MessageTest do
         content: %{text: "Hello, world!"},
         session_id: session.id
       }
+
       changeset = Message.changeset(%Message{}, attrs)
 
       assert changeset.valid?
@@ -32,6 +33,7 @@ defmodule Obelisk.Schemas.MessageTest do
         tool_name: "create_file",
         session_id: session.id
       }
+
       changeset = Message.changeset(%Message{}, attrs)
 
       assert changeset.valid?
@@ -45,6 +47,7 @@ defmodule Obelisk.Schemas.MessageTest do
         content: %{text: "I can help you with that", tokens: 1024},
         session_id: session.id
       }
+
       changeset = Message.changeset(%Message{}, attrs)
 
       assert changeset.valid?
@@ -56,6 +59,7 @@ defmodule Obelisk.Schemas.MessageTest do
         content: %{text: "Hello"},
         session_id: session.id
       }
+
       changeset = Message.changeset(%Message{}, attrs)
 
       refute changeset.valid?
@@ -67,6 +71,7 @@ defmodule Obelisk.Schemas.MessageTest do
         role: :user,
         session_id: session.id
       }
+
       changeset = Message.changeset(%Message{}, attrs)
 
       refute changeset.valid?
@@ -79,6 +84,7 @@ defmodule Obelisk.Schemas.MessageTest do
         content: %{text: "Hello"},
         session_id: session.id
       }
+
       changeset = Message.changeset(%Message{}, attrs)
 
       refute changeset.valid?
@@ -94,6 +100,7 @@ defmodule Obelisk.Schemas.MessageTest do
           content: %{text: "Test message for #{role}"},
           session_id: session.id
         }
+
         changeset = Message.changeset(%Message{}, attrs)
 
         assert changeset.valid?, "Role #{role} should be valid"

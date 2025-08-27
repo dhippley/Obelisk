@@ -129,7 +129,7 @@ defmodule Obelisk.MemoryTest do
     end
 
     test "returns error for non-existent memory" do
-      assert {:error, :not_found} = Memory.delete_memory(999999)
+      assert {:error, :not_found} = Memory.delete_memory(999_999)
     end
   end
 
@@ -143,7 +143,8 @@ defmodule Obelisk.MemoryTest do
       # For now, let's focus on the logic we can test
 
       short_text = "Short text that fits in one chunk"
-      assert String.length(short_text) < 1000  # Default chunk size
+      # Default chunk size
+      assert String.length(short_text) < 1000
 
       # The chunking behavior would be tested when we implement store_memory
     end

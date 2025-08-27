@@ -75,18 +75,19 @@ defmodule Obelisk.Memory do
   List all memories for a session (or global if session_id is nil).
   """
   def list_memories(session_id \\ nil) do
-    query = from(m in Memory,
-      preload: [:memory_chunks],
-      order_by: [desc: m.inserted_at]
-    )
-    
-    query = 
+    query =
+      from(m in Memory,
+        preload: [:memory_chunks],
+        order_by: [desc: m.inserted_at]
+      )
+
+    query =
       if session_id do
         from(m in query, where: m.session_id == ^session_id)
       else
         from(m in query, where: is_nil(m.session_id))
       end
-    
+
     Repo.all(query)
   end
 

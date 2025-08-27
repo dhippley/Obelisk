@@ -1,7 +1,7 @@
 defmodule Obelisk.Schemas.MemoryTest do
   use Obelisk.DataCase
 
-  alias Obelisk.Schemas.{Session, Memory}
+  alias Obelisk.Schemas.{Memory, Session}
 
   setup do
     {:ok, session} =
@@ -21,6 +21,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         text: "This is a test memory",
         embedding: embedding
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       assert changeset.valid?
@@ -38,6 +39,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         session_id: session.id,
         metadata: %{source: "chat", importance: "high"}
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       assert changeset.valid?
@@ -54,6 +56,7 @@ defmodule Obelisk.Schemas.MemoryTest do
           text: "Test memory for #{kind}",
           embedding: embedding
         }
+
         changeset = Memory.changeset(%Memory{}, attrs)
 
         assert changeset.valid?, "Kind #{kind} should be valid"
@@ -66,6 +69,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         text: "Memory without kind",
         embedding: embedding
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       refute changeset.valid?
@@ -77,6 +81,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         kind: :note,
         embedding: embedding
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       refute changeset.valid?
@@ -89,6 +94,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         text: "Memory with invalid kind",
         embedding: embedding
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       refute changeset.valid?
@@ -100,6 +106,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         kind: :note,
         text: "Memory without embedding"
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       assert changeset.valid?
@@ -112,6 +119,7 @@ defmodule Obelisk.Schemas.MemoryTest do
         text: "Global memory accessible to all sessions",
         embedding: embedding
       }
+
       changeset = Memory.changeset(%Memory{}, attrs)
 
       assert changeset.valid?

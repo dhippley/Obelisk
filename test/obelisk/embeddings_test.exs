@@ -41,10 +41,12 @@ defmodule Obelisk.EmbeddingsTest do
       # In a real test suite, you'd mock the System.fetch_env! call
 
       # We test that the function expects the API key to be present
-      assert_raise System.EnvError, ~r/could not fetch environment variable "OPENAI_API_KEY"/, fn ->
-        # This will fail if no API key is set
-        Embeddings.embed_text("test")
-      end
+      assert_raise System.EnvError,
+                   ~r/could not fetch environment variable "OPENAI_API_KEY"/,
+                   fn ->
+                     # This will fail if no API key is set
+                     Embeddings.embed_text("test")
+                   end
     end
 
     @tag :external_api

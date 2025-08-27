@@ -25,6 +25,7 @@ defmodule Obelisk.Schemas.MemoryChunkTest do
         embedding: embedding,
         memory_id: memory.id
       }
+
       changeset = MemoryChunk.changeset(%MemoryChunk{}, attrs)
 
       assert changeset.valid?
@@ -37,6 +38,7 @@ defmodule Obelisk.Schemas.MemoryChunkTest do
         embedding: embedding,
         memory_id: memory.id
       }
+
       changeset = MemoryChunk.changeset(%MemoryChunk{}, attrs)
 
       refute changeset.valid?
@@ -48,6 +50,7 @@ defmodule Obelisk.Schemas.MemoryChunkTest do
         text: "Chunk without parent memory",
         embedding: embedding
       }
+
       changeset = MemoryChunk.changeset(%MemoryChunk{}, attrs)
 
       refute changeset.valid?
@@ -59,6 +62,7 @@ defmodule Obelisk.Schemas.MemoryChunkTest do
         text: "Chunk without embedding",
         memory_id: memory.id
       }
+
       changeset = MemoryChunk.changeset(%MemoryChunk{}, attrs)
 
       assert changeset.valid?
@@ -76,6 +80,7 @@ defmodule Obelisk.Schemas.MemoryChunkTest do
         text: "Updated chunk text",
         embedding: embedding
       }
+
       changeset = MemoryChunk.changeset(chunk, attrs)
 
       assert changeset.valid?
