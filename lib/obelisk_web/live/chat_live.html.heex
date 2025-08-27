@@ -1,0 +1,238 @@
+<Layouts.flash_group flash={@flash} />
+
+<div class="flex h-screen bg-gray-50 dark:bg-gray-900">
+  <!-- Sidebar -->
+  <div class={[
+    "flex flex-col bg-white dark:bg-gray-800 border-r border-gray-200 dark:border-gray-700 transition-all duration-300",
+    @sidebar_open && "w-80",
+    !@sidebar_open && "w-16"
+  ]}>
+    <!-- Sidebar Header -->
+    <div class="flex items-center justify-between p-4 border-b border-gray-200 dark:border-gray-700">
+      <div class={["flex items-center space-x-2", !@sidebar_open && "hidden"]}>
+        <div class="w-8 h-8 bg-blue-600 rounded-lg flex items-center justify-center">
+          <.icon name="hero-chat-bubble-left-right" class="w-5 h-5 text-white" />
+        </div>
+        <h1 class="text-lg font-semibold text-gray-900 dark:text-white">Obelisk Chat</h1>
+      </div>
+
+      <button
+        phx-click="toggle_sidebar"
+        class="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-500 dark:text-gray-400"
+      >
+        <.icon name="hero-bars-3" class="w-5 h-5" />
+      </button>
+    </div>
+    
+<!-- Session Controls -->
+    <div class={["p-4 space-y-3", !@sidebar_open && "hidden"]}>
+      <button
+        phx-click="new_session"
+        class="w-full px-3 py-2 text-sm bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+      >
+        <.icon name="hero-plus" class="w-4 h-4 inline mr-2" /> New Session
+      </button>
+
+      <button
+        phx-click="clear_history"
+        class="w-full px-3 py-2 text-sm bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors"
+      >
+        <.icon name="hero-trash" class="w-4 h-4 inline mr-2" /> Clear History
+      </button>
+    </div>
+    
+<!-- Provider Switcher -->
+    <div class={["p-4 border-t border-gray-200 dark:border-gray-700", !@sidebar_open && "hidden"]}>
+      <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">AI Provider</h3>
+      <select
+        phx-change="switch_provider"
+        name="provider"
+        class="w-full px-3 py-2 text-sm border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white"
+      >
+        <option
+          :for={provider <- @available_providers}
+          value={provider}
+          selected={provider == @current_provider}
+        >
+          {String.capitalize(provider)}
+        </option>
+      </select>
+    </div>
+    
+<!-- Context Results -->
+    <div class={[
+      "flex-1 p-4 border-t border-gray-200 dark:border-gray-700 overflow-y-auto",
+      !@sidebar_open && "hidden"
+    ]}>
+      <h3 class="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">Context Used</h3>
+      <div :if={@context_results == []} class="text-sm text-gray-500 dark:text-gray-400">
+        No context retrieved yet
+      </div>
+      <div
+        :for={result <- @context_results}
+        class="mb-3 p-3 bg-gray-50 dark:bg-gray-700 rounded-lg"
+      >
+        <div class="flex justify-between items-start mb-1">
+          <span class="text-xs font-medium text-blue-600 dark:text-blue-400">
+            {result.source}
+          </span>
+          <span class="text-xs text-gray-500 dark:text-gray-400">Score: {result.score}</span>
+        </div>
+        <p class="text-sm text-gray-700 dark:text-gray-300">{result.text}...</p>
+      </div>
+    </div>
+  </div>
+  
+<!-- Main Chat Area -->
+  <div class="flex-1 flex flex-col">
+    <!-- Chat Header -->
+    <div class="flex items-center justify-between p-4 bg-white dark:bg-gray-800 border-b border-gray-200 dark:border-gray-700">
+      <div class="flex items-center space-x-3">
+        <h2 class="text-lg font-semibold text-gray-900 dark:text-white">
+          {String.slice(@session_name, 0, 20)}{if String.length(@session_name) > 20,
+            do: "...",
+            else: ""}
+        </h2>
+        <div :if={@loading} class="flex items-center text-blue-600 dark:text-blue-400">
+          <svg
+            class="animate-spin -ml-1 mr-2 h-4 w-4"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            >
+            </circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            >
+            </path>
+          </svg>
+          Thinking...
+        </div>
+      </div>
+      
+<!-- Stats -->
+      <div class="flex items-center space-x-4 text-sm text-gray-500 dark:text-gray-400">
+        <div>Context: {@stats.context_used}</div>
+        <div>History: {@stats.history_included}</div>
+        <div :if={@stats.response_time > 0}>Time: {@stats.response_time}ms</div>
+      </div>
+    </div>
+    
+<!-- Messages Area -->
+    <div class="flex-1 overflow-y-auto p-4 space-y-4" id="messages-container" phx-update="ignore">
+      <div :if={@messages == []} class="flex items-center justify-center h-full">
+        <div class="text-center">
+          <div class="w-16 h-16 bg-blue-100 dark:bg-blue-900 rounded-full flex items-center justify-center mx-auto mb-4">
+            <.icon
+              name="hero-chat-bubble-left-right"
+              class="w-8 h-8 text-blue-600 dark:text-blue-400"
+            />
+          </div>
+          <h3 class="text-lg font-medium text-gray-900 dark:text-white mb-2">
+            Start a conversation
+          </h3>
+          <p class="text-gray-500 dark:text-gray-400">
+            Ask me anything and I'll help with context from memory.
+          </p>
+        </div>
+      </div>
+
+      <div
+        :for={message <- @messages}
+        class={[
+          "flex",
+          message.role == :user && "justify-end",
+          message.role == :assistant && "justify-start"
+        ]}
+      >
+        <div class={[
+          "max-w-xs lg:max-w-md px-4 py-2 rounded-lg text-sm",
+          message.role == :user && "bg-blue-600 text-white",
+          message.role == :assistant &&
+            "bg-white dark:bg-gray-700 text-gray-900 dark:text-white border border-gray-200 dark:border-gray-600"
+        ]}>
+          <div class="whitespace-pre-wrap">{message.content.text || message.content}</div>
+          <div class="text-xs opacity-75 mt-1">
+            {Calendar.strftime(message.inserted_at, "%H:%M")}
+          </div>
+        </div>
+      </div>
+    </div>
+    
+<!-- Message Input -->
+    <div class="p-4 bg-white dark:bg-gray-800 border-t border-gray-200 dark:border-gray-700">
+      <form phx-submit="send_message" class="flex space-x-2">
+        <input
+          type="text"
+          name="message"
+          value={@current_message}
+          phx-change="update_message"
+          placeholder="Type your message..."
+          disabled={@loading}
+          class="flex-1 px-4 py-2 border border-gray-300 dark:border-gray-600 rounded-lg bg-white dark:bg-gray-700 text-gray-900 dark:text-white placeholder-gray-500 dark:placeholder-gray-400 focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:opacity-50"
+        />
+        <button
+          type="submit"
+          disabled={@loading || @current_message == ""}
+          class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        >
+          <.icon :if={!@loading} name="hero-paper-airplane" class="w-5 h-5" />
+          <svg
+            :if={@loading}
+            class="animate-spin w-5 h-5"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            >
+            </circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            >
+            </path>
+          </svg>
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+<script>
+  // Auto-scroll to bottom when new messages arrive
+  document.addEventListener('DOMContentLoaded', function() {
+    const container = document.getElementById('messages-container');
+    if (container) {
+      container.scrollTop = container.scrollHeight;
+    }
+  });
+
+  // Handle form submission with Enter key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey && e.target.name === 'message') {
+      e.preventDefault();
+      const form = e.target.closest('form');
+      if (form && e.target.value.trim()) {
+        form.dispatchEvent(new Event('submit', {bubbles: true}));
+      }
+    }
+  });
+</script>
