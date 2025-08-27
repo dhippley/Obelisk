@@ -144,8 +144,8 @@ defmodule ObeliskWeb.ChatLive do
     {:noreply, assign(socket, :sidebar_open, not socket.assigns.sidebar_open)}
   end
 
-  def handle_event("update_message", %{"value" => value}, socket) do
-    {:noreply, assign(socket, :current_message, value)}
+  def handle_event("update_message", %{"message" => message}, socket) do
+    {:noreply, assign(socket, :current_message, message)}
   end
 
   def handle_event("switch_provider", %{"provider" => provider}, socket) do

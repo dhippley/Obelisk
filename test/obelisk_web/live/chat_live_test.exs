@@ -29,7 +29,7 @@ defmodule ObeliskWeb.ChatLiveTest do
         {:ok, view, _html} = live(conn, "/chat")
 
         # Update the message input
-        view |> element("input[name=message]") |> render_change(%{"value" => "Hello!"})
+        view |> element("input[name=message]") |> render_change(%{"message" => "Hello!"})
 
         # Should update the current_message assign
         html = render(view)
