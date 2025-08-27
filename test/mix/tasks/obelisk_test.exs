@@ -21,7 +21,7 @@ defmodule Mix.Tasks.ObeliskTest do
       # For now, just verify the function exists and can handle invalid args
       functions = Obelisk.__info__(:functions)
       assert Keyword.has_key?(functions, :run)
-      
+
       # The actual error handling is tested through integration
       # rather than unit tests that would require mocking System.halt
     end
